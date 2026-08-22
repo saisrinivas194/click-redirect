@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Redirecting...</title>
+<meta name="robots" content="noindex">
+</head>
+<body>
+<p>Redirecting...</p>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var name = params.get("n") || "someone";
+  var company = params.get("c") || "a company";
+  var linkType = params.get("l") || "link";
+  var targetB64 = params.get("u") || "";
+  var topic = "sai-outreach-b732f6ae67e3";
+
+  function b64UrlDecode(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    return decodeURIComponent(escape(window.atob(s)));
+  }
+
+  var allowedTypes = ["linkedin", "github", "portfolio"];
+  var allowedHosts = ["linkedin.com", "github.com", "vercel.app"];
+
+  if (allowedTypes.indexOf(linkType) === -1 || !targetB64) {
+    document.body.textContent = "Invalid link.";
+    return;
+  }
+
+  var target;
+  try {
+    target = b64UrlDecode(targetB64);
+  } catch (e) {
+    document.body.textContent = "Invalid link.";
+    return;
+  }
+
+  var hostOk = allowedHosts.some(function (h) { return target.indexOf(h) !== -1; });
+  if (!hostOk || target.indexOf("https://") !== 0) {
+    document.body.textContent = "Invalid link.";
+    return;
+  }
+
+  fetch("https://ntfy.sh/" + topic, {
+    method: "POST",
+    headers: {
+      "Title": linkType.charAt(0).toUpperCase() + linkType.slice(1) + " click - " + company,
+      "Tags": "eyes,briefcase"
+    },
+    body: name + " at " + company + " clicked your " + linkType + " link."
+  }).catch(function () {}).finally(function () {
+    window.location.replace(target);
+  });
+
+  // fallback in case fetch hangs unexpectedly
+  setTimeout(function () { window.location.replace(target); }, 1500);
+})();
+</script>
+</body>
+</html>
