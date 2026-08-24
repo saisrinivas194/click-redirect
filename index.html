@@ -15,7 +15,6 @@
   var linkType = params.get("l") || "link";
   var targetB64 = params.get("u") || "";
   var emailB64 = params.get("e") || "";
-  var topic = "sai-outreach-b732f6ae67e3";
 
   function b64UrlDecode(s) {
     s = s.replace(/-/g, "+").replace(/_/g, "/");
@@ -48,17 +47,16 @@
   var email = "";
   try { email = emailB64 ? b64UrlDecode(emailB64) : ""; } catch (e) {}
 
-  var body = name + " at " + company + " clicked your " + linkType + " link.";
-  if (email) body += "\n::CLICK::" + email + "::" + linkType;
+  // Notification (and self-click filtering) happens server-side via a
+  // private relay, so no IP address or filtering logic lives in this
+  // public page's source.
+  var notifyUrl = "https://outreach-open-tracker.vercel.app/api/click-notify"
+    + "?n=" + encodeURIComponent(name)
+    + "&c=" + encodeURIComponent(company)
+    + "&l=" + encodeURIComponent(linkType)
+    + "&e=" + encodeURIComponent(email);
 
-  fetch("https://ntfy.sh/" + topic, {
-    method: "POST",
-    headers: {
-      "Title": linkType.charAt(0).toUpperCase() + linkType.slice(1) + " click - " + company,
-      "Tags": "eyes,briefcase,click"
-    },
-    body: body
-  }).catch(function () {}).finally(function () {
+  fetch(notifyUrl).catch(function () {}).finally(function () {
     window.location.replace(target);
   });
 
