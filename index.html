@@ -14,6 +14,7 @@
   var company = params.get("c") || "a company";
   var linkType = params.get("l") || "link";
   var targetB64 = params.get("u") || "";
+  var emailB64 = params.get("e") || "";
   var topic = "sai-outreach-b732f6ae67e3";
 
   function b64UrlDecode(s) {
@@ -44,13 +45,19 @@
     return;
   }
 
+  var email = "";
+  try { email = emailB64 ? b64UrlDecode(emailB64) : ""; } catch (e) {}
+
+  var body = name + " at " + company + " clicked your " + linkType + " link.";
+  if (email) body += "\n::CLICK::" + email + "::" + linkType;
+
   fetch("https://ntfy.sh/" + topic, {
     method: "POST",
     headers: {
       "Title": linkType.charAt(0).toUpperCase() + linkType.slice(1) + " click - " + company,
-      "Tags": "eyes,briefcase"
+      "Tags": "eyes,briefcase,click"
     },
-    body: name + " at " + company + " clicked your " + linkType + " link."
+    body: body
   }).catch(function () {}).finally(function () {
     window.location.replace(target);
   });
